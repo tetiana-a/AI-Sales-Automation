@@ -1,0 +1,178 @@
+{
+  "name": "06_GrowthLab_Happ_schedule_callback",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gl-callback",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "7f82551d-a57c-466e-b865-9e07e1b63438",
+      "name": "Webhook schedule_callback",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        0
+      ],
+      "notesInFlow": true,
+      "notes": "Webhook для Happ function schedule_callback. Викликається, коли клієнт просить передзвонити пізніше."
+    },
+    {
+      "parameters": {
+        "jsCode": "const b = $input.first().json || {};\nconst data = { ...(b.variables || {}), ...b };\n\nreturn [{\n  json: {\n    date: new Date().toISOString(),\n    event: 'schedule_callback',\n    client_name: data.client_name || 'Unknown Lead',\n    client_phone: data.client_phone || data.phone || '',\n    company: data.company || 'GrowthLab Lead',\n    callback_time: data.callback_time || data.callback_datetime || data.time || 'not specified',\n    reason: data.reason || 'Client asked to call back later',\n    summary: data.summary || '',\n    session_id: data.session_id || data.conversation_id || data.call_id || '',\n    status: 'Callback Scheduled',\n    raw_payload: JSON.stringify(data)\n  }\n}];"
+      },
+      "id": "2fcf3c04-3d85-435c-83fa-d26616bea1c7",
+      "name": "Normalize Callback Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        0
+      ],
+      "notesInFlow": true,
+      "notes": "Нормалізує callback дані: client, phone, callback_time, reason, summary, session_id."
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Callbacks",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_phone": "={{ $json.client_phone }}",
+            "company": "={{ $json.company }}",
+            "callback_time": "={{ $json.callback_time }}",
+            "reason": "={{ $json.reason }}",
+            "summary": "={{ $json.summary }}",
+            "status": "={{ $json.status }}",
+            "session_id": "={{ $json.session_id }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "b542b277-ee76-4447-ba4e-0a169c2c897b",
+      "name": "Append Callback Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -320,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      },
+      "notesInFlow": true,
+      "notes": "Записує callback у Google Sheets вкладку Callbacks."
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "📅 CALLBACK SCHEDULED\n\nClient: {{ $json.client_name }}\nPhone: {{ $json.client_phone }}\nCompany: {{ $json.company }}\n\nCallback time:\n{{ $json.callback_time }}\n\nReason:\n{{ $json.reason }}\n\nSummary:\n{{ $json.summary }}\n\nSession:\n{{ $json.session_id }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "282cf54c-fb9a-46b3-b9bf-c0f50ebcbeba",
+      "name": "Telegram Callback Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        0
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      },
+      "notesInFlow": true,
+      "notes": "Надсилає Telegram повідомлення менеджеру, що потрібно передзвонити клієнту."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true, event: 'callback_saved', callback_time: $json.callback_time, session_id: $json.session_id } }}",
+        "options": {}
+      },
+      "id": "bf3033e0-4db8-409d-86cd-7eac08d8cbbd",
+      "name": "Respond callback OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        0
+      ],
+      "notesInFlow": true,
+      "notes": "Повертає Happ підтвердження, що callback збережений."
+    }
+  ],
+  "connections": {
+    "Webhook schedule_callback": {
+      "main": [
+        [
+          {
+            "node": "Normalize Callback Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Callback Data": {
+      "main": [
+        [
+          {
+            "node": "Append Callback Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Callback Log": {
+      "main": [
+        [
+          {
+            "node": "Telegram Callback Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Callback Alert": {
+      "main": [
+        [
+          {
+            "node": "Respond callback OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "name": "05_GrowthLab_Happ_manager_handoff",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gl-manager",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "d419d04a-2451-47dd-973e-956b5653a6e8",
+      "name": "Webhook manager_handoff",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        0
+      ],
+      "notesInFlow": true,
+      "notes": "Webhook для Happ function manager_handoff. Викликається, коли лід HOT, просить живого менеджера або має високий бюджет."
+    },
+    {
+      "parameters": {
+        "jsCode": "const b = $input.first().json || {};\nconst data = { ...(b.variables || {}), ...b };\n\nlet priority = data.priority || '';\nif (!priority) {\n  const score = Number(data.total_score || data.ai_score || 0);\n  priority = score >= 80 ? 'HOT' : score >= 50 ? 'MEDIUM' : 'LOW';\n}\n\nreturn [{\n  json: {\n    date: new Date().toISOString(),\n    event: 'manager_handoff',\n    client_name: data.client_name || 'Unknown Lead',\n    client_phone: data.client_phone || data.phone || '',\n    company: data.company || 'GrowthLab Lead',\n    total_score: data.total_score || data.ai_score || '',\n    priority,\n    reason: data.reason || data.manager_reason || 'Lead requires human manager attention',\n    summary: data.summary || '',\n    next_action: data.next_action || 'Manager should contact the client as soon as possible',\n    session_id: data.session_id || data.conversation_id || data.call_id || '',\n    raw_payload: JSON.stringify(data)\n  }\n}];"
+      },
+      "id": "36e56931-a560-4a26-a9e2-ef1bb7665cf8",
+      "name": "Normalize Manager Handoff",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        0
+      ],
+      "notesInFlow": true,
+      "notes": "Нормалізує дані handoff: client, phone, company, score, priority, reason, summary, session_id."
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Manager Handoff",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_phone": "={{ $json.client_phone }}",
+            "company": "={{ $json.company }}",
+            "score": "={{ $json.total_score }}",
+            "priority": "={{ $json.priority }}",
+            "reason": "={{ $json.reason }}",
+            "summary": "={{ $json.summary }}",
+            "next_action": "={{ $json.next_action }}",
+            "session_id": "={{ $json.session_id }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "49758489-d2e7-4378-bc45-e5d4c888d79d",
+      "name": "Append Manager Handoff Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -320,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      },
+      "notesInFlow": true,
+      "notes": "Записує handoff у Google Sheets вкладку Manager Handoff."
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "🔥 MANAGER HANDOFF\n\nPriority: {{ $json.priority }}\n\nClient: {{ $json.client_name }}\nPhone: {{ $json.client_phone }}\nCompany: {{ $json.company }}\n\nScore: {{ $json.total_score }}\n\nReason:\n{{ $json.reason }}\n\nSummary:\n{{ $json.summary }}\n\nNext action:\n{{ $json.next_action }}\n\nSession:\n{{ $json.session_id }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "05ca76b5-3bdd-4499-ba22-8efc0e6fd97a",
+      "name": "Telegram Manager Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        0
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      },
+      "notesInFlow": true,
+      "notes": "Надсилає Telegram alert менеджеру/CEO про HOT lead або необхідність ручного контакту."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true, event: 'manager_handoff_saved', priority: $json.priority, session_id: $json.session_id } }}",
+        "options": {}
+      },
+      "id": "6ac714b3-6787-48b9-adaf-fb997e8aac0d",
+      "name": "Respond manager OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        0
+      ],
+      "notesInFlow": true,
+      "notes": "Повертає Happ підтвердження, що handoff збережений і alert відправлений."
+    }
+  ],
+  "connections": {
+    "Webhook manager_handoff": {
+      "main": [
+        [
+          {
+            "node": "Normalize Manager Handoff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Manager Handoff": {
+      "main": [
+        [
+          {
+            "node": "Append Manager Handoff Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Manager Handoff Log": {
+      "main": [
+        [
+          {
+            "node": "Telegram Manager Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Manager Alert": {
+      "main": [
+        [
+          {
+            "node": "Respond manager OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

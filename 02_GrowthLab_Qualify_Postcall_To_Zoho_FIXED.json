@@ -1,0 +1,338 @@
+{
+  "name": "02_GrowthLab_Qualify_Postcall_To_Zoho_FIXED",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gl-qualify",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e600dac1-6469-4634-9e8c-fe9874ba84c6",
+      "name": "Webhook qualify_lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        784,
+        48
+      ],
+      "notesInFlow": true,
+      "webhookId": "93e5aee2-8c71-437f-b7d5-f36aa2e33a33",
+      "notes": "qualify_lead: Функція ПІД ЧАС ДІАЛОГУ. Happ викликає коли агент зібрав BANT. Отримує: client_name, client_phone, company, business_type, problem, budget, authority, timeline, budget_score, authority_score, need_score, timeline_score, total_score, lead_temperature, lead_status, summary, objections, next_action, session_id."
+    },
+    {
+      "parameters": {
+        "jsCode": "const b = $input.first().json || {};\nconst n = v => Number.isFinite(Number(v)) ? Number(v) : 0;\nconst budget_score = n(b.budget_score);\nconst authority_score = n(b.authority_score);\nconst need_score = n(b.need_score);\nconst timeline_score = n(b.timeline_score);\nconst total_score = Number.isFinite(Number(b.total_score))\n  ? Number(b.total_score)\n  : budget_score + authority_score + need_score + timeline_score;\nconst lead_temperature = b.lead_temperature ||\n  (total_score >= 80 ? 'hot' : total_score >= 50 ? 'warm' : 'cold');\nconst lead_status = b.lead_status ||\n  (total_score >= 50 ? 'Qualified' : 'Not Qualified');\nreturn [{ json: {\n  client_name: b.client_name || 'Unknown Lead',\n  client_phone: b.client_phone || b.phone || '',\n  company: b.company || 'GrowthLab Lead',\n  business_type: b.business_type || '',\n  problem: b.problem || '',\n  budget: b.budget || '',\n  authority: b.authority || '',\n  timeline: b.timeline || '',\n  budget_score, authority_score, need_score, timeline_score, total_score,\n  lead_temperature, lead_status,\n  summary: b.summary || '',\n  objections: b.objections || '',\n  next_action: b.next_action || '',\n  session_id: b.session_id || b.call_id || ''\n}}];"
+      },
+      "id": "69079c28-d505-4753-805e-805f89f20bf4",
+      "name": "Normalize Qualification Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        48
+      ],
+      "notesInFlow": true,
+      "notes": "Нормалізує BANT-скори. Якщо total_score не передано — рахує суму budget+authority+need+timeline. Визначає temperature і status."
+    },
+    {
+      "parameters": {
+        "resource": "lead",
+        "Company": "={{ $json.company || $json.business_type || 'GrowthLab Lead' }}",
+        "lastName": "={{ $json.client_name || 'Unknown Lead' }}",
+        "additionalFields": {
+          "Phone": "={{ $json.client_phone }}",
+          "Description": "={{ 'Business: ' + ($json.business_type || '') + '\\nProblem: ' + ($json.problem || '') + '\\nBudget: ' + ($json.budget || '') + '\\nAuthority: ' + ($json.authority || '') + '\\nTimeline: ' + ($json.timeline || '') + '\\nAI Score: ' + $json.total_score + '\\nTemperature: ' + $json.lead_temperature + '\\nStatus: ' + $json.lead_status + '\\nSummary: ' + ($json.summary || '') + '\\nNext action: ' + ($json.next_action || '') + '\\nSession ID: ' + ($json.session_id || '') }}"
+        }
+      },
+      "id": "34d6cf8e-6561-45c7-94dd-db0056c50291",
+      "name": "Create Lead in Zoho CRM",
+      "type": "n8n-nodes-base.zohoCrm",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        48
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "zohoOAuth2Api": {
+          "id": "x3fsBcaUEwqS1knM",
+          "name": "Zoho OAuth2 API"
+        }
+      },
+      "notes": "Створює Lead у Zoho CRM. Company і Last Name обовʼязкові. Description зберігає BANT, AI Score, Temperature, Summary і Session ID."
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ",
+          "mode": "list",
+          "cachedResultName": "GrowthLab AI Voice CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Qualification Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "client": "={ $('Normalize Qualification Result').item.json.client_name }",
+            "phone": "={ $('Normalize Qualification Result').item.json.client_phone }",
+            "company": "={ $('Normalize Qualification Result').item.json.company }",
+            "score": "={ $('Normalize Qualification Result').item.json.total_score }",
+            "temperature": "={ $('Normalize Qualification Result').item.json.lead_temperature }",
+            "status": "={ $('Normalize Qualification Result').item.json.lead_status }",
+            "session_id": "={ $('Normalize Qualification Result').item.json.session_id }",
+            "summary": "={ $('Normalize Qualification Result').item.json.summary }",
+            "next_action": "={ $('Normalize Qualification Result').item.json.next_action }"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "client",
+              "displayName": "client",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "temperature",
+              "displayName": "temperature",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "next_action",
+              "displayName": "next_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Modified_Time",
+              "displayName": "Modified_Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Modified_By",
+              "displayName": "Modified_By",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Created_Time",
+              "displayName": "Created_Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Created_By",
+              "displayName": "Created_By",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3d9e9546-4894-4d8d-9add-256514e9cdae",
+      "name": "Append Qualification Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1504,
+        48
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tdYYUKmfc46qcnHN",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "ВАЖЛИВО: бере дані з Normalize Qualification Result, а не з Zoho output. Zoho після створення ліда повертає тільки id/time, тому прямий $json давав undefined."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true, message: 'Lead created and logged', score: $('Normalize Qualification Result').item.json.total_score, temperature: $('Normalize Qualification Result').item.json.lead_temperature, status: $('Normalize Qualification Result').item.json.lead_status, session_id: $('Normalize Qualification Result').item.json.session_id } }}",
+        "options": {}
+      },
+      "id": "8f83351a-dbaa-4760-b41d-2207fb7af23d",
+      "name": "Respond to Happ",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1744,
+        48
+      ],
+      "notesInFlow": true,
+      "notes": "Повертає Happ підтвердження, що lead створено і лог записано. Дані бере з Normalize Qualification Result."
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook qualify_lead": {
+      "main": [
+        [
+          {
+            "node": "Normalize Qualification Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Qualification Result": {
+      "main": [
+        [
+          {
+            "node": "Create Lead in Zoho CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Lead in Zoho CRM": {
+      "main": [
+        [
+          {
+            "node": "Append Qualification Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Qualification Log": {
+      "main": [
+        [
+          {
+            "node": "Respond to Happ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6dfd684e-5ed7-4db4-a9df-518475419d94",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2314bb34f842569ac280f8bf46692991ab5e47ef10a62c21b2a725d9fb7850e3"
+  },
+  "id": "cqeZPb43Z08Uc4EL",
+  "tags": []
+}
