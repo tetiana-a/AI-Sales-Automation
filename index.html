@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GrowthLab - Dark AI Automation</title>
+    <title>GrowthLab - AI Automation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,10 +19,7 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
-
-        /* Default cursor is NONE everywhere */
         * { cursor: none !important; } 
-        /* Except for text inputs where we need the I-beam */
         input, textarea { cursor: text !important; }
 
         body {
@@ -35,11 +32,11 @@
 
         h1, h2, h3, h4 { font-family: 'Cormorant Garamond', serif; }
 
-        /* Custom Cursor - ALWAYS VISIBLE */
+        /* Custom Cursor */
         .cursor-drop {
             position: fixed;
             pointer-events: none;
-            z-index: 999999; /* Extremely high z-index */
+            z-index: 999999;
             transform: translate(-50%, -100%);
             transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
             mix-blend-mode: difference;
@@ -51,9 +48,86 @@
             transition: transform 0.2s ease;
         }
         .cursor-drop.hovering svg { transform: scale(1.4); }
-        /* Removed the class that hid it */
 
-        /* Sophisticated Animated Background */
+        /* Header with Phone */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none; 
+        }
+        .header-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+            pointer-events: auto;
+        }
+        .header-phone {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-gold);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            background: rgba(20, 35, 55, 0.8);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            border: 1px solid rgba(212, 165, 116, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            pointer-events: auto;
+        }
+        .header-phone:hover {
+            background: rgba(212, 165, 116, 0.2);
+            box-shadow: 0 0 20px rgba(212, 165, 116, 0.2);
+        }
+        .header-phone svg { width: 16px; height: 16px; }
+
+        /* Language Switcher - ЗМІНИ ТУТ */
+        .lang-switcher {
+            position: fixed;
+            bottom: 2rem; /* Змінено з top */
+            left: 2rem;   /* Змінено з right */
+            z-index: 99999; 
+            display: flex;
+            gap: 0.25rem;
+            background: rgba(15, 35, 60, 0.95); 
+            border: 1px solid var(--accent-gold);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 0.35rem;
+            box-shadow: 0 0 25px rgba(212, 165, 116, 0.4); 
+        }
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.4rem 0.9rem;
+            border-radius: 30px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .lang-btn.active {
+            background: var(--accent-gold);
+            color: #000; 
+            box-shadow: 0 0 15px rgba(212, 165, 116, 0.5);
+        }
+        .lang-btn:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* Background */
         .ocean-atmosphere {
             position: fixed;
             inset: 0;
@@ -61,7 +135,6 @@
             overflow: hidden;
             background: linear-gradient(135deg, #02040a 0%, #0a1525 50%, #000000 100%);
         }
-
         .sophisticated-bg {
             position: absolute;
             inset: 0;
@@ -73,13 +146,11 @@
             opacity: 0.6;
             transform: scale(1.2);
         }
-
         @keyframes meshMove {
             0% { transform: translate(0, 0) scale(1.2) rotate(0deg); }
             50% { transform: translate(-5%, 5%) scale(1.3) rotate(5deg); }
             100% { transform: translate(5%, -5%) scale(1.2) rotate(-5deg); }
         }
-        
         .noise-overlay {
             position: absolute;
             inset: 0;
@@ -88,7 +159,6 @@
             pointer-events: none;
             z-index: 1;
         }
-
         #particles-canvas { position: absolute; inset: 0; z-index: 2; }
 
         /* Content Wrapper */
@@ -103,6 +173,7 @@
             align-items: center;
             text-align: center;
             padding: 2rem;
+            padding-top: 6rem; 
         }
         .hero-content { max-width: 850px; }
 
@@ -123,7 +194,6 @@
             opacity: 0;
             animation: elegantFadeIn 1s ease-out 0.3s forwards;
         }
-
         .badge-orb {
             width: 6px;
             height: 6px;
@@ -131,7 +201,6 @@
             border-radius: 50%;
             animation: orbPulse 3s ease-in-out infinite;
         }
-
         @keyframes orbPulse {
             0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(212, 165, 116, 0.4); }
             50% { opacity: 0.5; box-shadow: 0 0 0 6px rgba(212, 165, 116, 0); }
@@ -175,6 +244,15 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Buttons Container */
+        .hero-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
         /* CTA Button */
         .cta-btn {
             position: relative;
@@ -216,6 +294,32 @@
         .cta-btn:hover::before { opacity: 1; }
         .cta-btn svg { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .cta-btn:hover svg { transform: translateX(4px); }
+
+        /* Phone Button Style (Secondary) */
+        .phone-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.125rem 2rem;
+            background: transparent;
+            border: 1px solid rgba(100, 255, 218, 0.4);
+            border-radius: 100px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--accent-teal);
+            text-decoration: none;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            animation: elegantFadeIn 1s ease-out 1s forwards;
+        }
+        .phone-btn:hover {
+            background: rgba(100, 255, 218, 0.1);
+            border-color: var(--accent-teal);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(100, 255, 218, 0.15);
+        }
 
         /* Stats */
         .stats-row {
@@ -375,27 +479,37 @@
             transform: translateY(10px);
         }
 
-        /* Welcome Card Style */
+        /* Welcome Card */
         .welcome-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(212, 165, 116, 0.15);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border: none;
             border-radius: 16px;
-            padding: 1.5rem;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 1rem;
+            padding: 1.75rem;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(212, 165, 116, 0.5), transparent);
+            opacity: 0.6;
         }
         .welcome-card h4 {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 1.5rem;
+            font-size: 1.75rem;
             color: var(--accent-gold);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.2;
+            font-weight: 600;
         }
-        .welcome-card p {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
+        .welcome-card p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.7; }
 
         .chat-input-area {
             padding: 1rem 1.5rem;
@@ -430,10 +544,7 @@
             justify-content: center;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        .send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(212, 165, 116, 0.4);
-        }
+        .send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(212, 165, 116, 0.4); }
         .send-btn svg { width: 20px; height: 20px; color: #000; }
 
         /* Music Button */
@@ -453,37 +564,34 @@
             z-index: 100;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .music-btn:hover {
-            background: rgba(212, 165, 116, 0.15);
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(212, 165, 116, 0.3);
-        }
+        .music-btn:hover { background: rgba(212, 165, 116, 0.15); transform: scale(1.1); box-shadow: 0 0 20px rgba(212, 165, 116, 0.3); }
         .music-btn svg { width: 22px; height: 22px; color: var(--accent-gold); }
         
-        .eq-bars {
-            display: flex;
-            gap: 3px;
-            height: 16px;
-            align-items: flex-end;
-        }
-        .eq-bar {
-            width: 3px;
-            background: var(--accent-gold);
-            border-radius: 2px;
-            animation: eqBounce 0.8s ease-in-out infinite;
-        }
+        .eq-bars { display: flex; gap: 3px; height: 16px; align-items: flex-end; }
+        .eq-bar { width: 3px; background: var(--accent-gold); border-radius: 2px; animation: eqBounce 0.8s ease-in-out infinite; }
         .eq-bar:nth-child(1) { height: 30%; animation-delay: 0s; }
         .eq-bar:nth-child(2) { height: 80%; animation-delay: 0.2s; }
         .eq-bar:nth-child(3) { height: 50%; animation-delay: 0.4s; }
         @keyframes eqBounce { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.5); } }
 
         @media (max-width: 768px) {
-            .hero { padding: 1.5rem; }
+            .hero { padding: 1.5rem; padding-top: 7rem; }
             .stats-row { flex-direction: column; gap: 2rem; }
             .features-section { padding: 5rem 1.5rem; }
             .features-grid { grid-template-columns: 1fr; }
             .music-btn { bottom: 1.5rem; right: 1.5rem; width: 48px; height: 48px; }
             .chat-container { height: 80vh; }
+            /* Мобільна версія перемикача мови - залишаємо по центру для зручності, або можна змінити на left: 1.5rem */
+            .lang-switcher { 
+                bottom: 1.5rem; 
+                left: 50%; 
+                transform: translateX(-50%); 
+                right: auto; 
+                top: auto;
+            }
+            .music-btn { bottom: 5rem; right: 1.5rem; }
+            .main-header { padding: 1rem; flex-direction: column; gap: 0.5rem; align-items: flex-start; pointer-events: auto; }
+            .header-phone { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
         }
     </style>
 </head>
@@ -502,7 +610,23 @@
         </svg>
     </div>
 
-    <!-- Sophisticated Background -->
+    <!-- Header with Phone Number -->
+    <header class="main-header">
+        <div class="header-logo">GrowthLab</div>
+        <a href="tel:+380914811749" class="header-phone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>+380 91 481 1749</span>
+        </a>
+    </header>
+
+    <!-- Language Switcher -->
+    <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="uk">UA</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="cs">CZ</button>
+    </div>
+
+    <!-- Background -->
     <div class="ocean-atmosphere">
         <div class="sophisticated-bg"></div>
         <div class="noise-overlay"></div>
@@ -515,37 +639,44 @@
             <div class="hero-content">
                 <div class="elegant-badge">
                     <span class="badge-orb"></span>
-                    <span>AI-Powered Business Solutions</span>
+                    <span data-i18n="badge">AI-Powered Business Solutions</span>
                 </div>
 
                 <h1 class="hero-title">
-                    AI Sales Automation<br>
-                    <span class="emphasis">for Your Business</span>
+                    <span data-i18n="title_main">AI Sales Automation</span><br>
+                    <span class="emphasis" data-i18n="title_sub">for Your Business</span>
                 </h1>
 
-                <p class="hero-subtitle">
+                <p class="hero-subtitle" data-i18n="subtitle">
                     GrowthLab додає автоматизацію обробки чат-повідомлень, follow-up та CRM за допомогою AI. Зростіть ваші продажі у 3 рази швидше.
                 </p>
 
-                <button class="cta-btn" id="openChatBtn">
-                    <span>Запустити безкоштовну консультацію</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                    </svg>
-                </button>
+                <!-- Buttons Area -->
+                <div class="hero-buttons">
+                    <button class="cta-btn" id="openChatBtn">
+                        <span data-i18n="cta_btn">Запустити чат-бота</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    </button>
+
+                    <!-- Phone Button -->
+                    <a href="tel:+380914811749" class="phone-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <span>Тест голосового AI (Віра)</span>
+                    </a>
+                </div>
 
                 <div class="stats-row">
                     <div class="stat-item">
                         <div class="stat-value" data-target="500">0</div>
-                        <div class="stat-label">Клієнтів</div>
+                        <div class="stat-label" data-i18n="stat1">Клієнтів</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value" data-target="98">0</div>
-                        <div class="stat-label">% Задоволеності</div>
+                        <div class="stat-label" data-i18n="stat2">% Задоволеності</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value" data-target="3">0</div>
-                        <div class="stat-label">x Швидкість росту</div>
+                        <div class="stat-label" data-i18n="stat3">x Швидкість росту</div>
                     </div>
                 </div>
             </div>
@@ -554,69 +685,46 @@
         <section class="features-section">
             <div class="features-grid">
                 <article class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">Автоматичні чати</h3>
-                    <p class="feature-desc">AI обробляє чат-повідомлення 24/7, миттєво відповідаючи на запитання клієнтів.</p>
+                    <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+                    <h3 class="feature-title" data-i18n="feat1_title">Автоматичні чати</h3>
+                    <p class="feature-desc" data-i18n="feat1_desc">AI обробляє чат-повідомлення 24/7, миттєво відповідаючи на запитання клієнтів.</p>
                 </article>
 
                 <article class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">Follow-up послідовності</h3>
-                    <p class="feature-desc">Інтелектуальні нагадування та автоматичні follow-up для максимальної конверсії.</p>
+                    <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                    <h3 class="feature-title" data-i18n="feat2_title">Follow-up послідовності</h3>
+                    <p class="feature-desc" data-i18n="feat2_desc">Інтелектуальні нагадування та автоматичні follow-up для максимальної конверсії.</p>
                 </article>
 
                 <article class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">CRM інтеграція</h3>
-                    <p class="feature-desc">Повна синхронізація з вашою CRM системою для безшовного управління.</p>
+                    <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                    <h3 class="feature-title" data-i18n="feat3_title">CRM інтеграція</h3>
+                    <p class="feature-desc" data-i18n="feat3_desc">Повна синхронізація з вашою CRM системою для безшовного управління.</p>
                 </article>
             </div>
         </section>
     </main>
 
-    <!-- Custom Chat Modal -->
+    <!-- Chat Modal -->
     <div class="chat-overlay" id="chatOverlay">
         <div class="chat-container">
             <div class="chat-header">
-                <h3 class="chat-title">GrowthLab AI</h3>
+                <h3 class="chat-title" data-i18n="chat_header_title">GrowthLab AI</h3>
                 <button class="chat-close" id="closeChatBtn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
             <div class="chat-messages" id="chatMessages">
-                <!-- Replaced simple text with a Welcome Card -->
                 <div class="welcome-card">
-                    <h4>AI Sales Automation for Your Business</h4>
-                    <p>GrowthLab додає автоматизацію обробки чат-повідомлень, follow-up та CRM за допомогою AI. Зростіть ваші продажі у 3 рази швидше.</p>
+                    <h4 data-i18n="chat_welcome_title">AI Sales Automation for Your Business</h4>
+                    <p data-i18n="chat_welcome_text">GrowthLab додає автоматизацію обробки чат-повідомлень, follow-up та CRM за допомогою AI. Зростіть ваші продажі у 3 рази швидше.</p>
                 </div>
-                <div class="message bot">Вітаю! Чим можу допомогти?</div>
+                <div class="message bot" data-i18n="chat_greeting">Вітаю! Я AI-асистент GrowthLab. Чим можу допомогти?</div>
             </div>
             <div class="chat-input-area">
-                <input type="text" class="chat-input" id="chatInput" placeholder="Напишіть повідомлення..." autocomplete="off">
+                <input type="text" class="chat-input" id="chatInput" data-i18n-placeholder="chat_placeholder" placeholder="Напишіть повідомлення..." autocomplete="off">
                 <button class="send-btn" id="sendBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="22" y1="2" x2="11" y2="13"/>
-                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
             </div>
         </div>
@@ -624,30 +732,82 @@
 
     <!-- Music Button -->
     <button class="music-btn" id="musicBtn" aria-label="Увімкнути музику">
-        <svg id="musicIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="5 3 19 12 5 21 5 3"/>
-        </svg>
-        <div class="eq-bars" id="eqBars" style="display: none;">
-            <span class="eq-bar"></span>
-            <span class="eq-bar"></span>
-            <span class="eq-bar"></span>
-        </div>
+        <svg id="musicIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <div class="eq-bars" id="eqBars" style="display: none;"><span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span></div>
     </button>
 
-    <!-- Audio Source -->
     <audio id="ambientAudio" crossorigin="anonymous" loop preload="auto">
-        <source src="enigma-agnus-dei.mp3">
+        <source src="enigma-agnus-dei.mp3" type="audio/mpeg">
     </audio>
 
     <script>
-        // --- AUDIO VISUALIZER SETUP ---
-        let audioContext;
-        let analyser;
-        let source;
-        let dataArray;
-        let isAudioInitialized = false;
+        // --- TRANSLATIONS ---
+        const translations = {
+            uk: {
+                badge: "AI-Powered Business Solutions",
+                title_main: "AI Sales Automation",
+                title_sub: "for Your Business",
+                subtitle: "GrowthLab додає автоматизацію обробки чат-повідомлень, follow-up та CRM за допомогою AI. Зростіть ваші продажі у 3 рази швидше.",
+                cta_btn: "Запустити чат-бота",
+                stat1: "Клієнтів", stat2: "% Задоволеності", stat3: "x Швидкість росту",
+                feat1_title: "Автоматичні чати", feat1_desc: "AI обробляє чат-повідомлення 24/7, миттєво відповідаючи на запитання клієнтів.",
+                feat2_title: "Follow-up послідовності", feat2_desc: "Інтелектуальні нагадування та автоматичні follow-up для максимальної конверсії.",
+                feat3_title: "CRM інтеграція", feat3_desc: "Повна синхронізація з вашою CRM системою для безшовного управління.",
+                chat_header_title: "GrowthLab AI",
+                chat_welcome_title: "AI Sales Automation for Your Business",
+                chat_welcome_text: "GrowthLab додає автоматизацію обробки чат-повідомлень, follow-up та CRM за допомогою AI.",
+                chat_greeting: "Вітаю! Я AI-асистент GrowthLab. Чим можу допомогти?",
+                chat_placeholder: "Напишіть повідомлення..."
+            },
+            en: {
+                badge: "AI-Powered Business Solutions",
+                title_main: "AI Sales Automation", title_sub: "for Your Business",
+                subtitle: "GrowthLab adds automation of chat message processing, follow-up, and CRM using AI. Grow your sales 3 times faster.",
+                cta_btn: "Launch Chatbot",
+                stat1: "Clients", stat2: "% Satisfaction", stat3: "x Growth Speed",
+                feat1_title: "Automated Chats", feat1_desc: "AI processes chat messages 24/7, instantly answering customer questions.",
+                feat2_title: "Follow-up Sequences", feat2_desc: "Intelligent reminders and automatic follow-ups for maximum conversion.",
+                feat3_title: "CRM Integration", feat3_desc: "Full synchronization with your CRM system for seamless management.",
+                chat_header_title: "GrowthLab AI",
+                chat_welcome_title: "AI Sales Automation for Your Business",
+                chat_welcome_text: "GrowthLab adds automation of chat message processing, follow-up, and CRM using AI.",
+                chat_greeting: "Hello! I am GrowthLab AI assistant. How can I help?",
+                chat_placeholder: "Type a message..."
+            },
+            cs: {
+                badge: "AI řešení pro podnikání",
+                title_main: "AI automatizace prodeje", title_sub: "pro váš podnik",
+                subtitle: "GrowthLab přidává automatizaci zpracování chatových zpráv, follow-up a CRM pomocí AI. Zvyšte své prodeje 3x rychleji.",
+                cta_btn: "Spustit chatbota",
+                stat1: "Klientů", stat2: "% Spokojenosti", stat3: "x Rychlost růstu",
+                feat1_title: "Automatické chaty", feat1_desc: "AI zpracovává chatové zprávy 24/7 a okamžitě odpovídá na otázky zákazníků.",
+                feat2_title: "Follow-up sekvence", feat2_desc: "Inteligentní připomínky a automatické follow-up pro maximální konverzi.",
+                feat3_title: "CRM integrace", feat3_desc: "Plná synchronizace s vaším CRM systémem pro bezproblémové řízení.",
+                chat_header_title: "GrowthLab AI",
+                chat_welcome_title: "AI automatizace prodeje pro váš podnik",
+                chat_welcome_text: "GrowthLab přidává automatizaci zpracování chatových zpráv, follow-up a CRM pomocí AI.",
+                chat_greeting: "Dobrý den! Jsem AI asistent GrowthLab. Jak mohu pomoci?",
+                chat_placeholder: "Napište zprávu..."
+            }
+        };
 
-        // --- ELEMENTS ---
+        const langBtns = document.querySelectorAll('.lang-btn');
+        function setLanguage(lang) {
+            langBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (translations[lang] && translations[lang][key]) el.textContent = translations[lang][key];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.dataset.i18nPlaceholder;
+                if (translations[lang] && translations[lang][key]) el.placeholder = translations[lang][key];
+            });
+            document.documentElement.lang = lang;
+        }
+        langBtns.forEach(btn => btn.addEventListener('click', () => setLanguage(btn.dataset.lang)));
+
+        // --- AUDIO VISUALIZER ---
+        let audioContext, analyser, source, dataArray, isAudioInitialized = false;
         const cursor = document.getElementById('cursor');
         const particlesCanvas = document.getElementById('particles-canvas');
         const ctx = particlesCanvas.getContext('2d');
@@ -655,294 +815,129 @@
         const musicIcon = document.getElementById('musicIcon');
         const eqBars = document.getElementById('eqBars');
         const ambientAudio = document.getElementById('ambientAudio');
-
-        // Chat Elements
         const openChatBtn = document.getElementById('openChatBtn');
         const chatOverlay = document.getElementById('chatOverlay');
         const closeChatBtn = document.getElementById('closeChatBtn');
         const chatMessages = document.getElementById('chatMessages');
         const chatInput = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
-
         const WEBHOOK_URL = 'https://kotolap888.app.n8n.cloud/webhook/f3cd1cd1-94bf-45b0-b433-932b61baab8d/chat';
         
-        let mouseX = window.innerWidth / 2;
-        let mouseY = window.innerHeight / 2;
-        let cursorX = mouseX;
-        let cursorY = mouseY;
+        let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2, cursorX = mouseX, cursorY = mouseY;
         const particles = [];
         
-        // --- CURSOR LOGIC ---
         function animateCursor() {
-            cursorX += (mouseX - cursorX) * 0.12;
-            cursorY += (mouseY - cursorY) * 0.12;
-            cursor.style.left = cursorX + 'px';
-            cursor.style.top = cursorY + 'px';
+            cursorX += (mouseX - cursorX) * 0.12; cursorY += (mouseY - cursorY) * 0.12;
+            cursor.style.left = cursorX + 'px'; cursor.style.top = cursorY + 'px';
             requestAnimationFrame(animateCursor);
         }
         animateCursor();
-
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        });
-
-        const interactiveElements = document.querySelectorAll('button, a, .feature-card');
-        interactiveElements.forEach(el => {
+        document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+        document.querySelectorAll('button, a, .feature-card').forEach(el => {
             el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
             el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
         });
 
-        // --- VISUAL EFFECTS ---
-        function resizeCanvas() {
-            particlesCanvas.width = window.innerWidth;
-            particlesCanvas.height = window.innerHeight;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        function resizeCanvas() { particlesCanvas.width = window.innerWidth; particlesCanvas.height = window.innerHeight; }
+        resizeCanvas(); window.addEventListener('resize', resizeCanvas);
 
-        // Particle Class
         class Particle {
             constructor() { this.reset(); }
             reset() {
                 this.x = Math.random() * particlesCanvas.width;
                 this.y = particlesCanvas.height + Math.random() * 200;
-                this.baseSize = Math.random() * 3 + 1;
-                this.size = this.baseSize;
-                this.baseSpeedY = Math.random() * 0.8 + 0.3;
-                this.speedY = this.baseSpeedY;
-                this.wobble = Math.random() * Math.PI * 2;
-                this.wobbleSpeed = Math.random() * 0.02 + 0.01;
+                this.baseSize = Math.random() * 4 + 2; this.size = this.baseSize;
+                this.baseSpeedY = Math.random() * 0.5 + 0.2; this.speedY = this.baseSpeedY;
+                this.wobble = Math.random() * Math.PI * 2; this.wobbleSpeed = Math.random() * 0.02 + 0.01;
             }
             update(bassLevel) {
-                this.speedY = this.baseSpeedY + (bassLevel * 2.5);
-                this.size = this.baseSize * (1 + bassLevel * 4.0);
-                this.y -= this.speedY;
-                this.wobble += this.wobbleSpeed;
-                this.x += Math.sin(this.wobble) * (0.8 + bassLevel * 3);
+                this.speedY = this.baseSpeedY + (bassLevel * 0.5); this.size = this.baseSize * (1 + bassLevel * 0.5);
+                this.y -= this.speedY; this.wobble += this.wobbleSpeed;
+                this.x += Math.sin(this.wobble) * (0.5 + bassLevel * 0.5);
                 if (this.y < -50) this.reset();
             }
             draw(bassLevel) {
                 const sz = Math.max(0.5, this.size);
-                const r = Math.floor(212 - (bassLevel * 112));
-                const g = Math.floor(165 + (bassLevel * 90));
-                const b = Math.floor(116 + (bassLevel * 102));
-                const alpha = 0.3 + (bassLevel * 0.5);
-
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, sz, 0, Math.PI * 2);
-                
-                const grad = ctx.createRadialGradient(
-                    this.x - sz*0.3, this.y - sz*0.3, sz*0.1, 
-                    this.x, this.y, sz
-                );
-                
-                grad.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.8})`);
-                grad.addColorStop(0.4, `rgba(${r}, ${g}, ${b}, ${alpha})`);
-                grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-
-                ctx.fillStyle = grad;
-                ctx.fill();
+                const r = Math.floor(212 - (bassLevel * 112)), g = Math.floor(165 + (bassLevel * 90)), b = Math.floor(116 + (bassLevel * 102));
+                ctx.beginPath(); ctx.arc(this.x, this.y, sz, 0, Math.PI * 2);
+                const grad = ctx.createRadialGradient(this.x - sz*0.3, this.y - sz*0.3, sz*0.1, this.x, this.y, sz);
+                grad.addColorStop(0, `rgba(255, 255, 255, 0.6)`);
+                grad.addColorStop(0.4, `rgba(${r}, ${g}, ${b}, 0.1)`); grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+                ctx.fillStyle = grad; ctx.fill();
+                ctx.strokeStyle = `rgba(255, 255, 255, 0.15)`; ctx.lineWidth = 0.5; ctx.stroke();
             }
         }
+        for (let i = 0; i < 60; i++) { const p = new Particle(); p.y = Math.random() * particlesCanvas.height; particles.push(p); }
 
-        for (let i = 0; i < 70; i++) {
-            const p = new Particle();
-            p.y = Math.random() * particlesCanvas.height;
-            particles.push(p);
-        }
-
-        // --- MAIN RENDER LOOP ---
         let isPlaying = false;
-        
         function renderFrame() {
-            requestAnimationFrame(renderFrame);
-            
-            let bassLevel = 0;
-
+            requestAnimationFrame(renderFrame); let bassLevel = 0;
             if (isPlaying && analyser && dataArray) {
-                analyser.getByteFrequencyData(dataArray);
-                
-                let bassSum = 0;
-                const bassRange = 10; 
-                for (let i = 0; i < bassRange; i++) {
-                    bassSum += dataArray[i];
-                }
-                bassLevel = (bassSum / (bassRange * 255)) * 1.5; 
-                if (bassLevel > 1) bassLevel = 1;
+                analyser.getByteFrequencyData(dataArray); let bassSum = 0;
+                for (let i = 0; i < 10; i++) bassSum += dataArray[i];
+                bassLevel = (bassSum / 2550) * 1.5; if (bassLevel > 1) bassLevel = 1;
             }
-
             ctx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
-            
-            particles.forEach(p => {
-                p.update(bassLevel);
-                p.draw(bassLevel);
-            });
+            particles.forEach(p => { p.update(bassLevel); p.draw(bassLevel); });
         }
         renderFrame();
 
-        // --- MUSIC CONTROL ---
         function initAudio() {
             if (isAudioInitialized) return;
-            
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioContext = new AudioContext();
-            
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            const bufferLength = analyser.frequencyBinCount;
-            dataArray = new Uint8Array(bufferLength);
-            
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioCtx();
+            analyser = audioContext.createAnalyser(); analyser.fftSize = 256;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
             source = audioContext.createMediaElementSource(ambientAudio);
-            source.connect(analyser);
-            analyser.connect(audioContext.destination);
-            
+            source.connect(analyser); analyser.connect(audioContext.destination);
             isAudioInitialized = true;
         }
-
         musicBtn.addEventListener('click', () => {
             if (!isAudioInitialized) initAudio();
-            
             if (isPlaying) {
-                ambientAudio.pause();
-                musicBtn.classList.remove('active');
-                musicIcon.style.display = 'block';
-                eqBars.style.display = 'none';
+                ambientAudio.pause(); musicBtn.classList.remove('active');
+                musicIcon.style.display = 'block'; eqBars.style.display = 'none';
             } else {
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume();
-                }
-                ambientAudio.volume = 0.6;
-                ambientAudio.play().catch(e => console.log('Audio play error:', e));
+                if (audioContext.state === 'suspended') audioContext.resume();
+                ambientAudio.volume = 0.6; ambientAudio.play().catch(e => console.log(e));
                 musicBtn.classList.add('active');
-                musicIcon.style.display = 'none';
-                eqBars.style.display = 'flex';
-            }
-            isPlaying = !isPlaying;
+                musicIcon.style.display = 'none'; eqBars.style.display = 'flex';
+            } isPlaying = !isPlaying;
         });
 
-        // --- CHAT LOGIC ---
+        // Chat Logic
         let sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
-
-        openChatBtn.addEventListener('click', () => {
-            chatOverlay.classList.add('active');
-            document.body.classList.add('chat-is-open'); 
-            // Removed focus to keep cursor visible initially if needed, but user can click input
-            // setTimeout(() => chatInput.focus(), 100); 
-        });
-
-        closeChatBtn.addEventListener('click', () => {
-            chatOverlay.classList.remove('active');
-            document.body.classList.remove('chat-is-open');
-        });
-
-        chatOverlay.addEventListener('click', (e) => {
-            if (e.target === chatOverlay) {
-                chatOverlay.classList.remove('active');
-                document.body.classList.remove('chat-is-open');
-            }
-        });
-
+        openChatBtn.addEventListener('click', () => { chatOverlay.classList.add('active'); document.body.classList.add('chat-is-open'); });
+        closeChatBtn.addEventListener('click', () => { chatOverlay.classList.remove('active'); document.body.classList.remove('chat-is-open'); });
+        chatOverlay.addEventListener('click', e => { if (e.target === chatOverlay) { chatOverlay.classList.remove('active'); document.body.classList.remove('chat-is-open'); } });
         sendBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
+        chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
 
         async function sendMessage() {
-            const messageText = chatInput.value.trim();
-            if (!messageText) return;
-
-            addMessage(messageText, 'user');
-            chatInput.value = '';
-            showTypingIndicator();
-
+            const msg = chatInput.value.trim(); if (!msg) return;
+            addMessage(msg, 'user'); chatInput.value = ''; showTyping();
             try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'sendMessage',
-                        sessionId: sessionId,
-                        chatInput: messageText
-                    })
+                const res = await fetch(WEBHOOK_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'sendMessage', sessionId, chatInput: msg, lang: document.documentElement.lang })
                 });
-
-                removeTypingIndicator();
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const botReply = data.output || data.text || JSON.stringify(data);
-                    addMessage(botReply, 'bot');
-                } else {
-                    addMessage('Помилка з\'єднання.', 'bot');
-                }
-            } catch (error) {
-                removeTypingIndicator();
-                console.error('Error:', error);
-                addMessage('Помилка мережі.', 'bot');
-            }
+                removeTyping();
+                if (res.ok) {
+                    const data = await res.json();
+                    addMessage(data.output || data.text || 'Готово', 'bot');
+                } else addMessage('Помилка', 'bot');
+            } catch (e) { removeTyping(); addMessage('Мережева помилка', 'bot'); }
         }
+        function addMessage(t, type) { const d = document.createElement('div'); d.className = `message ${type}`; d.textContent = t; chatMessages.appendChild(d); chatMessages.scrollTop = chatMessages.scrollHeight; }
+        function showTyping() { const i = document.createElement('div'); i.className = 'message bot'; i.id = 'typing'; i.innerHTML = '<span style="opacity:0.5">...</span>'; chatMessages.appendChild(i); chatMessages.scrollTop = chatMessages.scrollHeight; }
+        function removeTyping() { const i = document.getElementById('typing'); if (i) i.remove(); }
 
-        function addMessage(text, type) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${type}`;
-            msgDiv.textContent = text;
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function showTypingIndicator() {
-            const indicator = document.createElement('div');
-            indicator.className = 'message bot';
-            indicator.id = 'typing';
-            indicator.innerHTML = '<span style="opacity:0.5">друкує...</span>';
-            chatMessages.appendChild(indicator);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function removeTypingIndicator() {
-            const indicator = document.getElementById('typing');
-            if (indicator) indicator.remove();
-        }
-
-        // --- SCROLL ANIMATIONS ---
-        const featureObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry, idx) => {
-                if (entry.isIntersecting) {
-                    setTimeout(() => entry.target.classList.add('visible'), idx * 150);
-                }
-            });
-        }, { threshold: 0.2 });
-
-        document.querySelectorAll('.feature-card').forEach(card => featureObserver.observe(card));
-
-        const statsObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const el = entry.target.querySelector('.stat-value');
-                    const target = parseInt(el.dataset.target);
-                    animateValue(el, target);
-                    statsObserver.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.5 });
-
-        document.querySelectorAll('.stat-item').forEach(item => statsObserver.observe(item));
-
-        function animateValue(el, target) {
-            let current = 0;
-            const duration = 2000;
-            const startTime = performance.now();
-            function update(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                current = Math.floor((1 - Math.pow(1 - progress, 4)) * target);
-                const suffix = target === 98 ? '%' : target === 3 ? 'x' : '+';
-                el.textContent = current + (progress === 1 ? suffix : '');
-                if (progress < 1) requestAnimationFrame(update);
-            }
-            requestAnimationFrame(update);
-        }
+        // Scroll Animations
+        const featObs = new IntersectionObserver((entries) => { entries.forEach((en, i) => { if (en.isIntersecting) setTimeout(() => en.target.classList.add('visible'), i * 150); }); }, { threshold: 0.2 });
+        document.querySelectorAll('.feature-card').forEach(c => featObs.observe(c));
+        const statObs = new IntersectionObserver((entries) => { entries.forEach(en => { if (en.isIntersecting) { const v = en.target.querySelector('.stat-value'); const t = parseInt(v.dataset.target); animate(v, t); statObs.unobserve(en.target); } }); }, { threshold: 0.5 });
+        document.querySelectorAll('.stat-item').forEach(i => statObs.observe(i));
+        function animate(el, target) { let c = 0, d = 2000, s = performance.now(); function u(t) { const p = Math.min((t - s) / d, 1); c = Math.floor((1 - Math.pow(1 - p, 4)) * target); const suf = target === 98 ? '%' : target === 3 ? 'x' : '+'; el.textContent = c + (p === 1 ? suf : ''); if (p < 1) requestAnimationFrame(u); } requestAnimationFrame(u); }
     </script>
 </body>
 </html>
