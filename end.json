@@ -1,0 +1,34 @@
+{
+  "name": "end",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bh-end-call",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        0
+      ],
+      "id": "02635057-d426-42ec-a4ad-52b86312fc66",
+      "name": "Webhook",
+      "webhookId": "df4bc998-7d6e-42f2-952e-756c0bc20f24"
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "67fee6cd-a3c5-4347-982b-e929be62f5dd",
+  "meta": {
+    "instanceId": "2314bb34f842569ac280f8bf46692991ab5e47ef10a62c21b2a725d9fb7850e3"
+  },
+  "id": "WguiS60jDbwdjULu",
+  "tags": []
+}

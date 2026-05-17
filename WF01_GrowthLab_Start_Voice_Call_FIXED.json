@@ -1,0 +1,181 @@
+{
+  "name": "01_GrowthLab_Start_Voice_Call",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gl-start-call",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "db8506d7-e979-42c3-91f6-3189cca527b2",
+      "name": "Webhook CRM New Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-700, 0],
+      "notesInFlow": true,
+      "notes": "Приймає нового ліда з CRM або форми. Очікує: client_name, phone, company, source."
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json || {};\nfunction normalizePhone(raw) {\n  let p = String(raw || '').trim().replace(/[^\\d+]/g, '');\n  if (p.startsWith('00')) p = '+' + p.slice(2);\n  if (!p.startsWith('+')) {\n    if (p.startsWith('380')) p = '+' + p;\n    else if (p.startsWith('0')) p = '+38' + p;\n    else p = '+' + p;\n  }\n  return p;\n}\nconst phone = normalizePhone(input.phone || input.client_phone || input.Phone || '');\nconst session_id = input.session_id || `voice_${Date.now()}_${Math.random().toString(16).slice(2,8)}`;\nreturn [{ json: {\n  client_name: input.client_name || input.name || input.Last_Name || 'Unknown Lead',\n  company: input.company || input.Company || 'GrowthLab Lead',\n  phone, client_phone: phone,\n  source: input.source || 'CRM Webhook',\n  business_type: input.business_type || '',\n  session_id\n}}];"
+      },
+      "id": "a95caeeb-2d1a-4fd3-a250-b762a778edad",
+      "name": "Normalize Lead Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-460, 0],
+      "notesInFlow": true,
+      "notes": "Нормалізує телефон (+380...), ім'я, компанію. Генерує session_id = voice_{timestamp}_{rand}."
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "id": "8ec836b0-0c41-45eb-9fa4-add24ea217ba",
+      "name": "Wait 2 Minutes",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [-220, 0],
+      "webhookId": "gl-wait-2-min",
+      "notesInFlow": true,
+      "notes": "Пауза 2 хвилини перед дзвінком (щоб лід встиг отримати email/SMS-підтвердження)."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.happ.tools/api/assistants/YOUR_ASSISTANT_ID/originate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Access-Token", "value": "YOUR_HAPP_TOKEN" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"phoneId\": \"YOUR_PHONE_ID\",\n  \"phoneNumber\": \"{{ $json.client_phone }}\",\n  \"variables\": {\n    \"client_name\": \"{{ $json.client_name }}\",\n    \"client_phone\": \"{{ $json.client_phone }}\",\n    \"company\": \"{{ $json.company }}\",\n    \"business_type\": \"{{ $json.business_type }}\",\n    \"source\": \"{{ $json.source }}\",\n    \"session_id\": \"{{ $json.session_id }}\"\n  }\n}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "13452f67-a998-47e5-9dc6-41909118600c",
+      "name": "Happ Start Voice Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [20, 0],
+      "onError": "continueErrorOutput",
+      "notesInFlow": true,
+      "notes": "Запускає дзвінок через Happ API. Передає variables: client_name, client_phone, company, business_type, source, session_id. ЗАМІНИТИ: YOUR_ASSISTANT_ID, YOUR_HAPP_TOKEN, YOUR_PHONE_ID."
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json || {};\nconst lead = $('Normalize Lead Data').item.json;\nconst happ_call_id = String(\n  resp.call_id || resp.id || resp.conversation_id ||\n  resp.chat_id || resp.call?.id || resp.data?.id || ''\n);\nreturn [{ json: { ok: true, message: 'Voice call started', happ_call_id, ...lead } }];"
+      },
+      "id": "ed64a944-8bcf-473c-af73-d438ceec7f81",
+      "name": "Extract Happ Call ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [280, -120],
+      "notesInFlow": true,
+      "notes": "Витягує Happ Call ID з відповіді API."
+    },
+    {
+      "parameters": {
+        "jsCode": "const err = $input.first().json || {};\nconst lead = $('Normalize Lead Data').item.json;\nreturn [{ json: { ok: false, message: err.error?.message || err.message || JSON.stringify(err).slice(0,300), ...lead } }];"
+      },
+      "id": "c1545bf5-03b7-44e8-92bd-5c2bb2f4500b",
+      "name": "Handle Happ Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [280, 120],
+      "notesInFlow": true,
+      "notes": "Обробляє помилку Happ API і повертає зрозуміле повідомлення."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "935dfc0b-e6c1-4e43-8ded-a1ebd906a72d",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [540, 0],
+      "notesInFlow": true,
+      "notes": "Повертає результат у CRM/форму. ok:true або ok:false."
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gl-init",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "init-webhook-001",
+      "name": "Webhook init_data",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-700, 300],
+      "notesInFlow": true,
+      "notes": "init_data: Функція ПЕРЕД ДІАЛОГОМ. Happ викликає на початку кожного дзвінка. Повертає dynamic variables (client_name, phone, company тощо) у Happ для підстановки в System Prompt."
+    },
+    {
+      "parameters": {
+        "jsCode": "const b = $input.first().json || {};\nconst data = { ...(b.variables || {}), ...b };\nreturn [{ json: {\n  client_name: data.client_name || 'Unknown Lead',\n  client_phone: data.client_phone || data.phone || '',\n  company: data.company || 'GrowthLab Lead',\n  business_type: data.business_type || '',\n  source: data.source || 'Voice',\n  session_id: data.session_id || data.call_id || data.conversation_id || `voice_${Date.now()}`\n}}];"
+      },
+      "id": "init-normalize-001",
+      "name": "Normalize Init Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-460, 300],
+      "notesInFlow": true,
+      "notes": "Нормалізує дані init_data для Happ."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { client_name: $json.client_name, client_phone: $json.client_phone, company: $json.company, business_type: $json.business_type, source: $json.source, session_id: $json.session_id } }}",
+        "options": {}
+      },
+      "id": "init-respond-001",
+      "name": "Respond Init Variables",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [-220, 300],
+      "notesInFlow": true,
+      "notes": "Повертає dynamic variables у Happ. Ці змінні підставляються в System Prompt агента на старті дзвінка."
+    }
+  ],
+  "connections": {
+    "Webhook CRM New Lead": {
+      "main": [[{ "node": "Normalize Lead Data", "type": "main", "index": 0 }]]
+    },
+    "Normalize Lead Data": {
+      "main": [[{ "node": "Wait 2 Minutes", "type": "main", "index": 0 }]]
+    },
+    "Wait 2 Minutes": {
+      "main": [[{ "node": "Happ Start Voice Call", "type": "main", "index": 0 }]]
+    },
+    "Happ Start Voice Call": {
+      "main": [
+        [{ "node": "Extract Happ Call ID", "type": "main", "index": 0 }],
+        [{ "node": "Handle Happ Error", "type": "main", "index": 0 }]
+      ]
+    },
+    "Extract Happ Call ID": {
+      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
+    },
+    "Handle Happ Error": {
+      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
+    },
+    "Webhook init_data": {
+      "main": [[{ "node": "Normalize Init Data", "type": "main", "index": 0 }]]
+    },
+    "Normalize Init Data": {
+      "main": [[{ "node": "Respond Init Variables", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "meta": { "templateCredsSetupCompleted": true }
+}

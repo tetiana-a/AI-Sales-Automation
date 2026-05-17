@@ -1,0 +1,377 @@
+{
+  "name": "04_GrowthLab_CEO_Weekly_Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "9982e543-7e96-436b-b6c9-7ee320bd3501",
+      "name": "Schedule Friday 17:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        256
+      ],
+      "notesInFlow": true,
+      "notes": "Кожної п'ятниці о 17:00 формує CEO Sales Report."
+    },
+    {
+      "parameters": {
+        "resource": "lead",
+        "operation": "getAll",
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "89d8bceb-255f-497c-bf66-c3a5864c1453",
+      "name": "Get Many Leads from Zoho",
+      "type": "n8n-nodes-base.zohoCrm",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        256
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "zohoOAuth2Api": {
+          "id": "x3fsBcaUEwqS1knM",
+          "name": "Zoho OAuth2 API"
+        }
+      },
+      "notes": "Читає всі ліди з Zoho CRM для розрахунку метрик."
+    },
+    {
+      "parameters": {
+        "jsCode": "const leads = $input.all().map(i => i.json);\nconst by_stage = {};\nconst by_owner = {};\nlet hot = 0, warm = 0, cold = 0, total_score = 0, scored = 0;\n\nfor (const l of leads) {\n  const s = l.Lead_Status || 'Без статусу';\n  by_stage[s] = (by_stage[s] || 0) + 1;\n  const o = l.Owner?.name || 'Без менеджера';\n  by_owner[o] = (by_owner[o] || 0) + 1;\n  // parse AI score from Description\n  const m = String(l.Description || '').match(/AI Score:\\s*(\\d+)/);\n  if (m) { total_score += Number(m[1]); scored++; }\n  const temp = String(l.Description || '').match(/Temperature:\\s*(\\w+)/);\n  if (temp) {\n    const t = temp[1].toLowerCase();\n    if (t === 'hot') hot++;\n    else if (t === 'warm') warm++;\n    else cold++;\n  }\n}\n\nreturn [{ json: {\n  total_leads: leads.length,\n  hot_leads: hot,\n  warm_leads: warm,\n  cold_leads: cold,\n  avg_score: scored > 0 ? Math.round(total_score / scored) : 0,\n  by_stage,\n  by_owner\n}}];"
+      },
+      "id": "03ac880c-dda9-4e48-88cf-c39a45a80b04",
+      "name": "Code CRM Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        256
+      ],
+      "notesInFlow": true,
+      "notes": "Рахує: total_leads, hot/warm/cold, avg_score, by_stage, by_owner."
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ",
+          "mode": "list",
+          "cachedResultName": "GrowthLab AI Voice CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 149436500,
+          "mode": "list",
+          "cachedResultName": "Dialogue Analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ/edit#gid=149436500"
+        },
+        "options": {}
+      },
+      "id": "9517fbd4-0cef-430c-8819-cffac70f03d7",
+      "name": "Read Dialogue Analysis",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1520,
+        480
+      ],
+      "notesInFlow": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tdYYUKmfc46qcnHN",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Читає AI-аналіз діалогів з WF03 (вкладка Dialogue Analysis)."
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "dialogue_analysis",
+        "options": {}
+      },
+      "id": "af15061d-c5ad-472a-b1a1-c794d55e8a7e",
+      "name": "Aggregate Dialogue Analysis",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        480
+      ],
+      "notesInFlow": true,
+      "notes": "Збирає всі рядки аналізу в один масив для передачі AI."
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "5b2c713b-556f-460c-b060-567e3ad46d1f",
+      "name": "Merge Metrics + Analysis",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        2000,
+        336
+      ],
+      "notesInFlow": true,
+      "notes": "Об'єднує CRM metrics і аналіз діалогів для AI."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Ти аналізуєш тиждень роботи AI voice agent GrowthLab.\n\nCRM метрики за тиждень:\n{{ JSON.stringify($json) }}\n\nАналіз діалогів (останні дзвінки):\n{{ JSON.stringify($json.dialogue_analysis || []) }}\n\nПоверни ТІЛЬКИ JSON без markdown:\n{\n  \"week_summary\": \"загальний підсумок тижня у 2-3 реченнях\",\n  \"total_calls\": число,\n  \"conversion_rate\": \"X% (qualified/total)\",\n  \"hot_leads\": число,\n  \"avg_score\": число,\n  \"problems\": [\"проблема 1\", \"проблема 2\"],\n  \"stage_bottleneck\": \"де найбільше зависає воронка\",\n  \"agent_quality\": \"оцінка якості роботи AI-агента\",\n  \"top_agent_errors\": [\"помилка 1\", \"помилка 2\"],\n  \"managers\": \"оцінка роботи менеджерів\",\n  \"recommendations\": [\"рекомендація 1\", \"рекомендація 2\", \"рекомендація 3\"],\n  \"priority_leads\": \"які ліди потребують негайної уваги\",\n  \"next_week_focus\": \"головний пріоритет на наступний тиждень\"\n}",
+        "options": {
+          "systemMessage": "Ти sales operations аналітик. Пиши ТІЛЬКИ українською. Повертай ТІЛЬКИ валідний JSON без markdown і пояснень."
+        }
+      },
+      "id": "e8e36476-c78c-4114-9178-78f11c3907ce",
+      "name": "AI CEO Report",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        2240,
+        336
+      ],
+      "notesInFlow": true,
+      "notes": "AI формує CEO звіт. Аналізує проблеми, рекомендує дії, оцінює якість агента і менеджерів."
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "id": "d419f32e-a794-4453-8013-474b93f905c8",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2208,
+        560
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "HTADmzhrpOhF8fjG",
+          "name": "OpenAi account 4"
+        }
+      },
+      "notes": "GPT-4o-mini для CEO report."
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json?.output || JSON.stringify($input.first().json);\nlet r = {};\ntry {\n  r = JSON.parse(raw.replace(/```json|```/g, '').trim());\n} catch(e) {\n  r = { raw: raw };\n}\n\nconst problems = Array.isArray(r.problems) ? r.problems.map((p,i)=>`${i+1}. ${p}`).join('\\n') : r.problems || '';\nconst recs = Array.isArray(r.recommendations) ? r.recommendations.map((p,i)=>`${i+1}. ${p}`).join('\\n') : r.recommendations || '';\nconst errors = Array.isArray(r.top_agent_errors) ? r.top_agent_errors.map((p,i)=>`${i+1}. ${p}`).join('\\n') : '';\n\nconst text = `📊 CEO SALES REPORT — GrowthLab\\n${'─'.repeat(32)}\\n\\n📅 Тиждень: ${new Date().toLocaleDateString('uk-UA')}\\n\\n📈 МЕТРИКИ\\nДзвінків: ${r.total_calls || '?'}\\nКонверсія: ${r.conversion_rate || '?'}\\nHOT лідів: ${r.hot_leads || '?'}\\nСередній score: ${r.avg_score || '?'}\\n\\n📝 ПІДСУМОК\\n${r.week_summary || ''}\\n\\n⚠️ ПРОБЛЕМИ\\n${problems}\\n\\n🔴 ПОМИЛКИ АГЕНТА\\n${errors}\\n\\n🍾 ПРІОРИТЕТНІ ЛІДИ\\n${r.priority_leads || ''}\\n\\n✅ РЕКОМЕНДАЦІЇ\\n${recs}\\n\\n🎯 ФОКУС НА НАСТУПНИЙ ТИЖДЕНЬ\\n${r.next_week_focus || ''}`;\n\nreturn [{ json: { ...r, telegram_text: text } }];"
+      },
+      "id": "e2a3b8a6-f345-4cbb-a0bd-14b3c32a2a6f",
+      "name": "Format Telegram Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2512,
+        336
+      ],
+      "notesInFlow": true,
+      "notes": "Форматує AI-відповідь у читабельний Telegram-текст з emoji і розділами."
+    },
+    {
+      "parameters": {
+        "chatId": "8213865630",
+        "text": "={{ $json.telegram_text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "f5edcd01-6adc-4b36-a55a-722a5be9215e",
+      "name": "Telegram CEO Report",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2752,
+        336
+      ],
+      "notesInFlow": true,
+      "webhookId": "a787f6ff-9dc9-440f-b186-3177048c5d4a",
+      "credentials": {
+        "telegramApi": {
+          "id": "KlAQDi7spYxrnYoj",
+          "name": "zoho"
+        }
+      },
+      "notes": "Надсилає відформатований CEO report у Telegram."
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "CEO Reports",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat('yyyy-MM-dd') }}",
+            "total_leads": "={{ $json.total_calls || '' }}",
+            "new_leads": "={{ $json.hot_leads || '' }}",
+            "bottleneck": "={{ $json.stage_bottleneck || '' }}",
+            "managers": "={{ $json.managers || '' }}",
+            "problems": "={{ Array.isArray($json.problems) ? $json.problems.join('; ') : $json.problems || '' }}",
+            "recommendations": "={{ Array.isArray($json.recommendations) ? $json.recommendations.join('; ') : $json.recommendations || '' }}",
+            "summary": "={{ $json.week_summary || '' }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "debc0729-bd45-4e91-a6cb-381a0067ba71",
+      "name": "Save Report to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2752,
+        496
+      ],
+      "notesInFlow": true,
+      "notes": "Зберігає CEO звіт у Google Sheets → вкладка CEO Reports."
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Friday 17:00": {
+      "main": [
+        [
+          {
+            "node": "Get Many Leads from Zoho",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Dialogue Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Many Leads from Zoho": {
+      "main": [
+        [
+          {
+            "node": "Code CRM Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code CRM Metrics": {
+      "main": [
+        [
+          {
+            "node": "Merge Metrics + Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Dialogue Analysis": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Dialogue Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Dialogue Analysis": {
+      "main": [
+        [
+          {
+            "node": "Merge Metrics + Analysis",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Metrics + Analysis": {
+      "main": [
+        [
+          {
+            "node": "AI CEO Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI CEO Report": {
+      "main": [
+        [
+          {
+            "node": "Format Telegram Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Telegram Report": {
+      "main": [
+        [
+          {
+            "node": "Telegram CEO Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI CEO Report",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "675df4a9-da80-4fa8-9b82-04845122b497",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2314bb34f842569ac280f8bf46692991ab5e47ef10a62c21b2a725d9fb7850e3"
+  },
+  "id": "YwaeTX2kqyy4asLr",
+  "tags": []
+}

@@ -1,0 +1,432 @@
+{
+  "name": "03_GrowthLab_Voice_Transcript_Analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "5f8a0dc6-c16f-418e-852a-509303632125",
+      "name": "Schedule Daily 09:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        336
+      ],
+      "notesInFlow": true,
+      "notes": "Щоденно о 09:00 запускає аналіз нових transcript."
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ",
+          "mode": "list",
+          "cachedResultName": "GrowthLab AI Voice CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 727183678,
+          "mode": "list",
+          "cachedResultName": "Voice Transcripts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ/edit#gid=727183678"
+        },
+        "options": {}
+      },
+      "id": "e959f8f6-470c-43f9-ac67-ae7d5c26a218",
+      "name": "Read Voice Transcripts",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        576,
+        336
+      ],
+      "notesInFlow": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tdYYUKmfc46qcnHN",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Читає всі записи з вкладки Voice Transcripts."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter: transcript >20 chars, take last 10 not yet analyzed\nconst rows = $input.all().map(i => i.json);\nconst valid = rows.filter(r => String(r.transcript || '').length > 20);\nconst last10 = valid.slice(-10);\nreturn last10.map(r => ({ json: r }));"
+      },
+      "id": "ab96f171-44aa-4285-bc20-fe379c01484f",
+      "name": "Filter Limit 10",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        336
+      ],
+      "notesInFlow": true,
+      "alwaysOutputData": true,
+      "notes": "Фільтрує transcript довжиною >20 символів. Бере останні 10 записів щоб не перевищити токени OpenAI."
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "5a00c380-0a68-42c3-9bc2-800cf78f661c",
+      "name": "Loop Over Transcripts",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1056,
+        336
+      ],
+      "notesInFlow": true,
+      "notes": "Обробляє кожен transcript по одному через AI Agent."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Проаналізуй голосовий sales-дзвінок GrowthLab.\n\nДані дзвінка:\nsession_id: {{ $json.session_id || \"\" }}\nclient: {{ $json.client || $json.client_name || \"\" }}\nphone: {{ $json.phone || $json.client_phone || \"\" }}\nscore: {{ $json.ai_score || $json.score || 0 }}\nduration_sec: {{ $json.duration || 0 }}\ncall_status: {{ $json.call_status || \"\" }}\n\ntranscript:\n{{ $json.transcript || \"\" }}\n\nПоверни ТІЛЬКИ валідний JSON без markdown:\n\n{\n  \"session_id\": \"\",\n  \"client\": \"\",\n  \"phone\": \"\",\n  \"score\": 0,\n  \"agent_errors\": \"\",\n  \"client_problem\": \"\",\n  \"successful_pattern\": \"\",\n  \"recommendation\": \"\",\n  \"transcript_summary\": \"\"\n}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Ти AI-аналітик якості голосових sales-дзвінків. Повертаєш тільки валідний JSON. Не використовуй markdown. Не копіюй {{ }} у відповідь. Якщо даних немає, став пустий рядок або 0."
+        }
+      },
+      "id": "dc160e1e-f416-4dea-b6f4-a6a1e818347e",
+      "name": "AI Analyze Transcript",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1328,
+        336
+      ],
+      "notesInFlow": true,
+      "notes": "AI аналізує кожен transcript. Виявляє помилки агента, проблему клієнта, успішні патерни, рекомендації."
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "id": "c95cdce6-54c4-432c-869f-aae1255046d2",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        560
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "H7HapmO3kIMYWjKz",
+          "name": "OpenAi account 2"
+        }
+      },
+      "notes": "GPT-4o-mini для аналізу transcript (дешево і швидко)."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI output JSON safely\nconst raw = $input.first().json?.output || JSON.stringify($input.first().json);\nlet parsed = {};\ntry {\n  const clean = raw.replace(/```json|```/g, '').trim();\n  parsed = JSON.parse(clean);\n} catch(e) {\n  parsed = { raw_output: raw, parse_error: e.message };\n}\nreturn [{ json: parsed }];"
+      },
+      "id": "a1a78649-36bf-44ef-891e-0415f2cd99c6",
+      "name": "Parse Analysis JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1584,
+        336
+      ],
+      "notesInFlow": true,
+      "notes": "Безпечно парсить JSON-відповідь AI. Якщо AI повернув markdown — очищає та парсить."
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ",
+          "mode": "list",
+          "cachedResultName": "GrowthLab AI Voice CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 149436500,
+          "mode": "list",
+          "cachedResultName": "Dialogue Analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KfdaUqar_0zBXYKlFjnd-H8h5QZTpL8fLPLR3BXghQQ/edit#gid=149436500"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat('yyyy-MM-dd') }}",
+            "session_id": "={{ $json.session_id || '' }}",
+            "client": "={{ $json.client || '' }}",
+            "phone": "={{ $json.phone || '' }}",
+            "score": "={{ $json.score || '' }}",
+            "recommendation": "={{ $json.recommendation || '' }}",
+            "transcript_summary": "={{ $json.transcript_summary || '' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "client",
+              "displayName": "client",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "помилки",
+              "displayName": "помилки",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "проблема клієнта",
+              "displayName": "проблема клієнта",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "успішний патерн",
+              "displayName": "успішний патерн",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recommendation",
+              "displayName": "recommendation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "transcript_summary",
+              "displayName": "transcript_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "17f12d06-c2e0-45c5-820b-cb1794a773b1",
+      "name": "Append Analysis to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1824,
+        336
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tdYYUKmfc46qcnHN",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Записує результат AI-аналізу у Google Sheets → вкладка Dialogue Analysis. Ці дані використовує WF04 CEO Report."
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"session_id\": { \"type\": \"string\" },\n    \"client\": { \"type\": \"string\" },\n    \"phone\": { \"type\": \"string\" },\n    \"score\": { \"type\": \"number\" },\n    \"agent_errors\": { \"type\": \"string\" },\n    \"client_problem\": { \"type\": \"string\" },\n    \"successful_pattern\": { \"type\": \"string\" },\n    \"recommendation\": { \"type\": \"string\" },\n    \"transcript_summary\": { \"type\": \"string\" }\n  },\n  \"required\": [\n    \"session_id\",\n    \"client\",\n    \"phone\",\n    \"score\",\n    \"agent_errors\",\n    \"client_problem\",\n    \"successful_pattern\",\n    \"recommendation\",\n    \"transcript_summary\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1504,
+        544
+      ],
+      "id": "1467e664-5ef9-4d39-a939-8682be114b91",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Daily 09:00": {
+      "main": [
+        [
+          {
+            "node": "Read Voice Transcripts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Voice Transcripts": {
+      "main": [
+        [
+          {
+            "node": "Filter Limit 10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Limit 10": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Transcripts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Transcripts": {
+      "main": [
+        [],
+        [
+          {
+            "node": "AI Analyze Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Analyze Transcript": {
+      "main": [
+        [
+          {
+            "node": "Parse Analysis JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Analysis JSON": {
+      "main": [
+        [
+          {
+            "node": "Append Analysis to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Analysis to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Transcripts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Analyze Transcript",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Analyze Transcript",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b62653e3-1d6f-4e5b-a355-bd04bb7cf7b7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2314bb34f842569ac280f8bf46692991ab5e47ef10a62c21b2a725d9fb7850e3"
+  },
+  "id": "fFtzA36Ew7eJqcbn",
+  "tags": []
+}
