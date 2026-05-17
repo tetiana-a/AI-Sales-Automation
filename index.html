@@ -49,7 +49,7 @@
         }
         .cursor-drop.hovering svg { transform: scale(1.4); }
 
-        /* Header with Phone - ДОДАНО TRANSITION */
+        /* Header */
         .main-header {
             position: fixed;
             top: 0;
@@ -61,14 +61,11 @@
             justify-content: space-between;
             align-items: center;
             pointer-events: none;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Плавне зникнення */
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
-        /* Клас для приховування хедера */
         .main-header.hidden {
             transform: translateY(-100%);
         }
-
         .header-logo {
             font-family: 'Cormorant Garamond', serif;
             font-size: 1.5rem;
@@ -98,7 +95,7 @@
         }
         .header-phone svg { width: 16px; height: 16px; }
 
-        /* Language Switcher - ЗНИЗУ ЗЛІВА */
+        /* Language Switcher - ЗМІНИ ТУТ (напівпрозорий) */
         .lang-switcher {
             position: fixed;
             bottom: 2rem; 
@@ -106,13 +103,20 @@
             z-index: 99999; 
             display: flex;
             gap: 0.25rem;
-            background: rgba(15, 35, 60, 0.95); 
-            border: 1px solid var(--accent-gold);
+            background: rgba(20, 35, 55, 0.6); /* Змінено на більш прозорий */
+            border: 1px solid rgba(212, 165, 116, 0.3);
             backdrop-filter: blur(10px);
             border-radius: 50px;
             padding: 0.35rem;
-            box-shadow: 0 0 25px rgba(212, 165, 116, 0.4); 
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.3); 
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Додано анімацію */
         }
+        
+        /* Клас для приховування перемикача мови */
+        .lang-switcher.hidden {
+            transform: translateY(150%); /* Ховається вниз */
+        }
+
         .lang-btn {
             background: transparent;
             border: none;
@@ -302,7 +306,7 @@
         .cta-btn svg { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .cta-btn:hover svg { transform: translateX(4px); }
 
-        /* Phone Button Style (Secondary) */
+        /* Phone Button Style */
         .phone-btn {
             position: relative;
             display: inline-flex;
@@ -486,7 +490,6 @@
             transform: translateY(10px);
         }
 
-        /* Welcome Card */
         .welcome-card {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
             border: none;
@@ -588,6 +591,8 @@
             .features-grid { grid-template-columns: 1fr; }
             .music-btn { bottom: 1.5rem; right: 1.5rem; width: 48px; height: 48px; }
             .chat-container { height: 80vh; }
+            
+            /* Language Switcher Mobile */
             .lang-switcher { 
                 bottom: 1.5rem; 
                 left: 50%; 
@@ -595,9 +600,28 @@
                 right: auto; 
                 top: auto;
             }
+            /* Приховування на мобільному (з урахуванням центрування) */
+            .lang-switcher.hidden {
+                transform: translateX(-50%) translateY(150%);
+            }
+
             .music-btn { bottom: 5rem; right: 1.5rem; }
-            .main-header { padding: 1rem; flex-direction: column; gap: 0.5rem; align-items: flex-start; pointer-events: auto; }
-            .header-phone { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+            
+            /* Header Mobile - ЗМІНИ ТУТ (центрування) */
+            .main-header { 
+                padding: 1rem; 
+                flex-direction: column; 
+                gap: 0.5rem; 
+                align-items: center; /* Центруємо все по горизонталі */
+                pointer-events: auto; 
+            }
+            .header-phone { 
+                font-size: 0.8rem; 
+                padding: 0.4rem 0.8rem; 
+                /* Прибираємо align-self: flex-start, якщо був, щоб центрувалось */
+                align-self: center; 
+                margin-top: 0.5rem;
+            }
         }
     </style>
 </head>
@@ -626,7 +650,7 @@
     </header>
 
     <!-- Language Switcher -->
-    <div class="lang-switcher">
+    <div class="lang-switcher" id="langSwitcher">
         <button class="lang-btn active" data-lang="uk">UA</button>
         <button class="lang-btn" data-lang="en">EN</button>
         <button class="lang-btn" data-lang="cs">CZ</button>
@@ -667,7 +691,6 @@
                     <!-- Phone Button -->
                     <a href="tel:+380914811749" class="phone-btn">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <!-- ДОДАНО ПЕРЕКЛАД ДЛЯ ЦЬОГО ТЕКСТУ -->
                         <span data-i18n="hero_phone_btn">Тест голосового AI (Віра)</span>
                     </a>
                 </div>
@@ -756,7 +779,7 @@
                 title_sub: "for Your Business",
                 subtitle: "GrowthLab додає автоматизацію обробки чат-повідомлень, follow-up та CRM за допомогою AI. Зростіть ваші продажі у 3 рази швидше.",
                 cta_btn: "Запустити чат-бота",
-                hero_phone_btn: "Тест голосового AI (Віра)", // ДОДАНО
+                hero_phone_btn: "Тест голосового AI (Віра)",
                 stat1: "Клієнтів", stat2: "% Задоволеності", stat3: "x Швидкість росту",
                 feat1_title: "Автоматичні чати", feat1_desc: "AI обробляє чат-повідомлення 24/7, миттєво відповідаючи на запитання клієнтів.",
                 feat2_title: "Follow-up послідовності", feat2_desc: "Інтелектуальні нагадування та автоматичні follow-up для максимальної конверсії.",
@@ -772,7 +795,7 @@
                 title_main: "AI Sales Automation", title_sub: "for Your Business",
                 subtitle: "GrowthLab adds automation of chat message processing, follow-up, and CRM using AI. Grow your sales 3 times faster.",
                 cta_btn: "Launch Chatbot",
-                hero_phone_btn: "Test Voice AI (Vira)", // ДОДАНО
+                hero_phone_btn: "Test Voice AI (Vira)",
                 stat1: "Clients", stat2: "% Satisfaction", stat3: "x Growth Speed",
                 feat1_title: "Automated Chats", feat1_desc: "AI processes chat messages 24/7, instantly answering customer questions.",
                 feat2_title: "Follow-up Sequences", feat2_desc: "Intelligent reminders and automatic follow-ups for maximum conversion.",
@@ -788,7 +811,7 @@
                 title_main: "AI automatizace prodeje", title_sub: "pro váš podnik",
                 subtitle: "GrowthLab přidává automatizaci zpracování chatových zpráv, follow-up a CRM pomocí AI. Zvyšte své prodeje 3x rychleji.",
                 cta_btn: "Spustit chatbota",
-                hero_phone_btn: "Test hlasového AI (Vira)", // ДОДАНО
+                hero_phone_btn: "Test hlasového AI (Vira)",
                 stat1: "Klientů", stat2: "% Spokojenosti", stat3: "x Rychlost růstu",
                 feat1_title: "Automatické chaty", feat1_desc: "AI zpracovává chatové zprávy 24/7 a okamžitě odpovídá na otázky zákazníků.",
                 feat2_title: "Follow-up sekvence", feat2_desc: "Inteligentní připomínky a automatické follow-up pro maximální konverzi.",
@@ -816,19 +839,22 @@
         }
         langBtns.forEach(btn => btn.addEventListener('click', () => setLanguage(btn.dataset.lang)));
 
-        // --- HEADER HIDE ON SCROLL ---
+        // --- HEADER & LANG SWITCHER HIDE ON SCROLL ---
         const mainHeader = document.getElementById('mainHeader');
+        const langSwitcher = document.getElementById('langSwitcher');
         let lastScrollTop = 0;
         
         window.addEventListener('scroll', () => {
             let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             
             if (scrollTop > lastScrollTop && scrollTop > 50) {
-                // Прокрутка вниз -> ховаємо хедер
+                // Прокрутка вниз -> ховаємо хедер і мову
                 mainHeader.classList.add('hidden');
+                langSwitcher.classList.add('hidden');
             } else {
-                // Прокрутка вгору -> показуємо хедер
+                // Прокрутка вгору -> показуємо
                 mainHeader.classList.remove('hidden');
+                langSwitcher.classList.remove('hidden');
             }
             lastScrollTop = scrollTop;
         }, { passive: true });
