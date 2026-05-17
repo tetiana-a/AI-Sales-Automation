@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowthLab - Dark AI Automation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-abyss: #030a14;
+            --accent-gold: #d4a574;
+            --accent-teal: #64ffda;
+            --text-light: #e8f4f0;
+            --text-muted: #8ab4c4;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        /* Default cursor is NONE everywhere */
+        * { cursor: none !important; } 
+        /* Except for text inputs where we need the I-beam */
+        input, textarea { cursor: text !important; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-abyss);
+            color: var(--text-light);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Cormorant Garamond', serif; }
+
+        /* Custom Cursor - ALWAYS VISIBLE */
+        .cursor-drop {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999999; /* Extremely high z-index */
+            transform: translate(-50%, -100%);
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
+            mix-blend-mode: difference;
+        }
+        .cursor-drop svg {
+            width: 22px;
+            height: 30px;
+            filter: drop-shadow(0 0 15px var(--accent-gold));
+            transition: transform 0.2s ease;
+        }
+        .cursor-drop.hovering svg { transform: scale(1.4); }
+        /* Removed the class that hid it */
+
+        /* Sophisticated Animated Background */
+        .ocean-atmosphere {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #02040a 0%, #0a1525 50%, #000000 100%);
+        }
+
+        .sophisticated-bg {
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(212, 165, 116, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(100, 255, 218, 0.1) 0%, transparent 40%);
+            animation: meshMove 20s ease-in-out infinite alternate;
+            filter: blur(60px);
+            opacity: 0.6;
+            transform: scale(1.2);
+        }
+
+        @keyframes meshMove {
+            0% { transform: translate(0, 0) scale(1.2) rotate(0deg); }
+            50% { transform: translate(-5%, 5%) scale(1.3) rotate(5deg); }
+            100% { transform: translate(5%, -5%) scale(1.2) rotate(-5deg); }
+        }
+        
+        .noise-overlay {
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #particles-canvas { position: absolute; inset: 0; z-index: 2; }
+
+        /* Content Wrapper */
+        .content-wrapper { position: relative; z-index: 10; }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        .hero-content { max-width: 850px; }
+
+        .elegant-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 0.625rem 1.25rem;
+            background: rgba(20, 30, 40, 0.4);
+            border: 1px solid rgba(212, 165, 116, 0.3);
+            border-radius: 100px;
+            backdrop-filter: blur(10px);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            color: var(--accent-gold);
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: elegantFadeIn 1s ease-out 0.3s forwards;
+        }
+
+        .badge-orb {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+            animation: orbPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes orbPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(212, 165, 116, 0.4); }
+            50% { opacity: 0.5; box-shadow: 0 0 0 6px rgba(212, 165, 116, 0); }
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 10vw, 5.5rem);
+            font-weight: 300;
+            line-height: 1.05;
+            margin-bottom: 1.5rem;
+            color: var(--text-light);
+            opacity: 0;
+            animation: elegantFadeIn 1s ease-out 0.5s forwards;
+            text-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
+        .hero-title .emphasis {
+            font-weight: 600;
+            font-style: italic;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-gold) 50%, #64ffda 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmerText 6s linear infinite;
+        }
+        @keyframes shimmerText { to { background-position: 200% center; } }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: 300;
+            color: var(--text-muted);
+            line-height: 1.8;
+            max-width: 540px;
+            margin: 0 auto 3rem;
+            opacity: 0;
+            animation: elegantFadeIn 1s ease-out 0.7s forwards;
+        }
+
+        @keyframes elegantFadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* CTA Button */
+        .cta-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.125rem 2.5rem;
+            background: rgba(10, 20, 30, 0.6);
+            border: 1px solid rgba(212, 165, 116, 0.5);
+            border-radius: 100px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            letter-spacing: 0.025em;
+            color: var(--accent-gold);
+            text-decoration: none;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            animation: elegantFadeIn 1s ease-out 0.9s forwards;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .cta-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(212, 165, 116, 0.3) 0%, rgba(100, 255, 218, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: -1;
+        }
+        .cta-btn:hover {
+            color: #fff;
+            border-color: var(--accent-gold);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(212, 165, 116, 0.2);
+        }
+        .cta-btn:hover::before { opacity: 1; }
+        .cta-btn svg { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .cta-btn:hover svg { transform: translateX(4px); }
+
+        /* Stats */
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 5rem;
+            opacity: 0;
+            animation: elegantFadeIn 1s ease-out 1.2s forwards;
+        }
+        .stat-item { text-align: center; }
+        .stat-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 600;
+            color: var(--accent-gold);
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.8125rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* Features */
+        .features-section { padding: 8rem 2rem; position: relative; }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .feature-card {
+            position: relative;
+            padding: 2.5rem;
+            background: rgba(10, 20, 30, 0.4);
+            border: 1px solid rgba(212, 165, 116, 0.1);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        .feature-card.visible { opacity: 1; transform: translateY(0); }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(212, 165, 116, 0.3);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(212, 165, 116, 0.15) 0%, rgba(100, 255, 218, 0.05) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            transition: transform 0.4s ease;
+        }
+        .feature-card:hover .feature-icon { transform: scale(1.05); }
+        .feature-icon svg { width: 28px; height: 28px; color: var(--accent-gold); stroke-width: 1.5; }
+        .feature-title { font-size: 1.375rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.75rem; }
+        .feature-desc { font-size: 0.9375rem; font-weight: 300; color: var(--text-muted); line-height: 1.7; }
+
+        /* Chat Overlay */
+        .chat-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 5, 10, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .chat-overlay.active { opacity: 1; visibility: visible; }
+
+        .chat-container {
+            width: 100%;
+            max-width: 450px;
+            height: 70vh;
+            max-height: 600px;
+            background: rgba(5, 15, 25, 0.85);
+            border: 1px solid rgba(212, 165, 116, 0.2);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+        }
+        .chat-overlay.active .chat-container { transform: scale(1) translateY(0); }
+
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(212, 165, 116, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+        }
+        .chat-title { font-size: 1.25rem; font-weight: 600; color: var(--accent-gold); }
+        .chat-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.5rem;
+            transition: color 0.3s;
+        }
+        .chat-close:hover { color: var(--accent-gold); }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(212, 165, 116, 0.2); border-radius: 4px; }
+
+        .message {
+            max-width: 85%;
+            padding: 0.875rem 1.125rem;
+            border-radius: 18px;
+            font-size: 0.9375rem;
+            line-height: 1.5;
+            opacity: 0;
+            animation: messageAppear 0.3s ease forwards;
+        }
+        @keyframes messageAppear { to { opacity: 1; transform: translateY(0); } }
+
+        .message.bot {
+            align-self: flex-start;
+            color: #fff;
+            border-bottom-left-radius: 4px;
+            transform: translateY(10px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, rgba(212, 165, 116, 0.3) 0%, rgba(100, 255, 218, 0.1) 100%);
+            color: #fff;
+            border: 1px solid rgba(212, 165, 116, 0.2);
+            border-bottom-right-radius: 4px;
+            transform: translateY(10px);
+        }
+
+        /* Welcome Card Style */
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 165, 116, 0.15);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 1rem;
+        }
+        .welcome-card h4 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            color: var(--accent-gold);
+            margin-bottom: 0.5rem;
+        }
+        .welcome-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .chat-input-area {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 0.75rem;
+            background: rgba(0,0,0,0.2);
+        }
+        .chat-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 100px;
+            padding: 0.75rem 1.25rem;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .chat-input:focus { border-color: var(--accent-gold); }
+        .chat-input::placeholder { color: rgba(255,255,255,0.3); }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(212, 165, 116, 0.4);
+        }
+        .send-btn svg { width: 20px; height: 20px; color: #000; }
+
+        /* Music Button */
+        .music-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(212, 165, 116, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .music-btn:hover {
+            background: rgba(212, 165, 116, 0.15);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(212, 165, 116, 0.3);
+        }
+        .music-btn svg { width: 22px; height: 22px; color: var(--accent-gold); }
+        
+        .eq-bars {
+            display: flex;
+            gap: 3px;
+            height: 16px;
+            align-items: flex-end;
+        }
+        .eq-bar {
+            width: 3px;
+            background: var(--accent-gold);
+            border-radius: 2px;
+            animation: eqBounce 0.8s ease-in-out infinite;
+        }
+        .eq-bar:nth-child(1) { height: 30%; animation-delay: 0s; }
+        .eq-bar:nth-child(2) { height: 80%; animation-delay: 0.2s; }
+        .eq-bar:nth-child(3) { height: 50%; animation-delay: 0.4s; }
+        @keyframes eqBounce { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.5); } }
+
+        @media (max-width: 768px) {
+            .hero { padding: 1.5rem; }
+            .stats-row { flex-direction: column; gap: 2rem; }
+            .features-section { padding: 5rem 1.5rem; }
+            .features-grid { grid-template-columns: 1fr; }
+            .music-btn { bottom: 1.5rem; right: 1.5rem; width: 48px; height: 48px; }
+            .chat-container { height: 80vh; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom cursor -->
+    <div class="cursor-drop" id="cursor">
+        <svg viewBox="0 0 20 28" fill="none">
+            <defs>
+                <linearGradient id="dropGrad" x1="10" y1="0" x2="10" y2="28" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#d4a574" stop-opacity="0.9"/>
+                    <stop offset="100%" stop-color="#a8e6cf" stop-opacity="0.6"/>
+                </linearGradient>
+            </defs>
+            <path d="M10 0C10 0 0 12.5 0 18C0 23.5 4.5 28 10 28C15.5 28 20 23.5 20 18C20 12.5 10 0 10 0Z" fill="url(#dropGrad)"/>
+            <ellipse cx="6" cy="15" rx="2.5" ry="3.5" fill="rgba(255,255,255,0.25)"/>
+        </svg>
+    </div>
+
+    <!-- Sophisticated Background -->
+    <div class="ocean-atmosphere">
+        <div class="sophisticated-bg"></div>
+        <div class="noise-overlay"></div>
+        <canvas id="particles-canvas"></canvas>
+    </div>
+
+    <!-- Main Content -->
+    <main class="content-wrapper">
+        <section class="hero">
+            <div class="hero-content">
+                <div class="elegant-badge">
+                    <span class="badge-orb"></span>
+                    <span>AI-Powered Business Solutions</span>
+                </div>
+
+                <h1 class="hero-title">
+                    AI Sales Automation<br>
+                    <span class="emphasis">for Your Business</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    GrowthLab додає автоматизацію обробки чат-повідомлень, follow-up та CRM за допомогою AI. Зростіть ваші продажі у 3 рази швидше.
+                </p>
+
+                <button class="cta-btn" id="openChatBtn">
+                    <span>Запустити безкоштовну консультацію</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                    </svg>
+                </button>
+
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-value" data-target="500">0</div>
+                        <div class="stat-label">Клієнтів</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" data-target="98">0</div>
+                        <div class="stat-label">% Задоволеності</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" data-target="3">0</div>
+                        <div class="stat-label">x Швидкість росту</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features-section">
+            <div class="features-grid">
+                <article class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Автоматичні чати</h3>
+                    <p class="feature-desc">AI обробляє чат-повідомлення 24/7, миттєво відповідаючи на запитання клієнтів.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Follow-up послідовності</h3>
+                    <p class="feature-desc">Інтелектуальні нагадування та автоматичні follow-up для максимальної конверсії.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">CRM інтеграція</h3>
+                    <p class="feature-desc">Повна синхронізація з вашою CRM системою для безшовного управління.</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <!-- Custom Chat Modal -->
+    <div class="chat-overlay" id="chatOverlay">
+        <div class="chat-container">
+            <div class="chat-header">
+                <h3 class="chat-title">GrowthLab AI</h3>
+                <button class="chat-close" id="closeChatBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- Replaced simple text with a Welcome Card -->
+                <div class="welcome-card">
+                    <h4>AI Sales Automation for Your Business</h4>
+                    <p>GrowthLab додає автоматизацію обробки чат-повідомлень, follow-up та CRM за допомогою AI. Зростіть ваші продажі у 3 рази швидше.</p>
+                </div>
+                <div class="message bot">Вітаю! Чим можу допомогти?</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Напишіть повідомлення..." autocomplete="off">
+                <button class="send-btn" id="sendBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Music Button -->
+    <button class="music-btn" id="musicBtn" aria-label="Увімкнути музику">
+        <svg id="musicIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <div class="eq-bars" id="eqBars" style="display: none;">
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+        </div>
+    </button>
+
+    <!-- Audio Source -->
+    <audio id="ambientAudio" crossorigin="anonymous" loop preload="auto">
+        <source src="https://assets.mixkit.co/music/preview/mixkit-deep-water-146.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // --- AUDIO VISUALIZER SETUP ---
+        let audioContext;
+        let analyser;
+        let source;
+        let dataArray;
+        let isAudioInitialized = false;
+
+        // --- ELEMENTS ---
+        const cursor = document.getElementById('cursor');
+        const particlesCanvas = document.getElementById('particles-canvas');
+        const ctx = particlesCanvas.getContext('2d');
+        const musicBtn = document.getElementById('musicBtn');
+        const musicIcon = document.getElementById('musicIcon');
+        const eqBars = document.getElementById('eqBars');
+        const ambientAudio = document.getElementById('ambientAudio');
+
+        // Chat Elements
+        const openChatBtn = document.getElementById('openChatBtn');
+        const chatOverlay = document.getElementById('chatOverlay');
+        const closeChatBtn = document.getElementById('closeChatBtn');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        const WEBHOOK_URL = 'https://kotolap888.app.n8n.cloud/webhook/f3cd1cd1-94bf-45b0-b433-932b61baab8d/chat';
+        
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let cursorX = mouseX;
+        let cursorY = mouseY;
+        const particles = [];
+        
+        // --- CURSOR LOGIC ---
+        function animateCursor() {
+            cursorX += (mouseX - cursorX) * 0.12;
+            cursorY += (mouseY - cursorY) * 0.12;
+            cursor.style.left = cursorX + 'px';
+            cursor.style.top = cursorY + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        const interactiveElements = document.querySelectorAll('button, a, .feature-card');
+        interactiveElements.forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
+        });
+
+        // --- VISUAL EFFECTS ---
+        function resizeCanvas() {
+            particlesCanvas.width = window.innerWidth;
+            particlesCanvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Particle Class
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * particlesCanvas.width;
+                this.y = particlesCanvas.height + Math.random() * 200;
+                this.baseSize = Math.random() * 3 + 1;
+                this.size = this.baseSize;
+                this.baseSpeedY = Math.random() * 0.8 + 0.3;
+                this.speedY = this.baseSpeedY;
+                this.wobble = Math.random() * Math.PI * 2;
+                this.wobbleSpeed = Math.random() * 0.02 + 0.01;
+            }
+            update(bassLevel) {
+                this.speedY = this.baseSpeedY + (bassLevel * 2.5);
+                this.size = this.baseSize * (1 + bassLevel * 4.0);
+                this.y -= this.speedY;
+                this.wobble += this.wobbleSpeed;
+                this.x += Math.sin(this.wobble) * (0.8 + bassLevel * 3);
+                if (this.y < -50) this.reset();
+            }
+            draw(bassLevel) {
+                const sz = Math.max(0.5, this.size);
+                const r = Math.floor(212 - (bassLevel * 112));
+                const g = Math.floor(165 + (bassLevel * 90));
+                const b = Math.floor(116 + (bassLevel * 102));
+                const alpha = 0.3 + (bassLevel * 0.5);
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, sz, 0, Math.PI * 2);
+                
+                const grad = ctx.createRadialGradient(
+                    this.x - sz*0.3, this.y - sz*0.3, sz*0.1, 
+                    this.x, this.y, sz
+                );
+                
+                grad.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.8})`);
+                grad.addColorStop(0.4, `rgba(${r}, ${g}, ${b}, ${alpha})`);
+                grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+                ctx.fillStyle = grad;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 70; i++) {
+            const p = new Particle();
+            p.y = Math.random() * particlesCanvas.height;
+            particles.push(p);
+        }
+
+        // --- MAIN RENDER LOOP ---
+        let isPlaying = false;
+        
+        function renderFrame() {
+            requestAnimationFrame(renderFrame);
+            
+            let bassLevel = 0;
+
+            if (isPlaying && analyser && dataArray) {
+                analyser.getByteFrequencyData(dataArray);
+                
+                let bassSum = 0;
+                const bassRange = 10; 
+                for (let i = 0; i < bassRange; i++) {
+                    bassSum += dataArray[i];
+                }
+                bassLevel = (bassSum / (bassRange * 255)) * 1.5; 
+                if (bassLevel > 1) bassLevel = 1;
+            }
+
+            ctx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+            
+            particles.forEach(p => {
+                p.update(bassLevel);
+                p.draw(bassLevel);
+            });
+        }
+        renderFrame();
+
+        // --- MUSIC CONTROL ---
+        function initAudio() {
+            if (isAudioInitialized) return;
+            
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioContext();
+            
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            const bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+            
+            source = audioContext.createMediaElementSource(ambientAudio);
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+            
+            isAudioInitialized = true;
+        }
+
+        musicBtn.addEventListener('click', () => {
+            if (!isAudioInitialized) initAudio();
+            
+            if (isPlaying) {
+                ambientAudio.pause();
+                musicBtn.classList.remove('active');
+                musicIcon.style.display = 'block';
+                eqBars.style.display = 'none';
+            } else {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                ambientAudio.volume = 0.6;
+                ambientAudio.play().catch(e => console.log('Audio play error:', e));
+                musicBtn.classList.add('active');
+                musicIcon.style.display = 'none';
+                eqBars.style.display = 'flex';
+            }
+            isPlaying = !isPlaying;
+        });
+
+        // --- CHAT LOGIC ---
+        let sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
+
+        openChatBtn.addEventListener('click', () => {
+            chatOverlay.classList.add('active');
+            document.body.classList.add('chat-is-open'); 
+            // Removed focus to keep cursor visible initially if needed, but user can click input
+            // setTimeout(() => chatInput.focus(), 100); 
+        });
+
+        closeChatBtn.addEventListener('click', () => {
+            chatOverlay.classList.remove('active');
+            document.body.classList.remove('chat-is-open');
+        });
+
+        chatOverlay.addEventListener('click', (e) => {
+            if (e.target === chatOverlay) {
+                chatOverlay.classList.remove('active');
+                document.body.classList.remove('chat-is-open');
+            }
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        async function sendMessage() {
+            const messageText = chatInput.value.trim();
+            if (!messageText) return;
+
+            addMessage(messageText, 'user');
+            chatInput.value = '';
+            showTypingIndicator();
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'sendMessage',
+                        sessionId: sessionId,
+                        chatInput: messageText
+                    })
+                });
+
+                removeTypingIndicator();
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const botReply = data.output || data.text || JSON.stringify(data);
+                    addMessage(botReply, 'bot');
+                } else {
+                    addMessage('Помилка з\'єднання.', 'bot');
+                }
+            } catch (error) {
+                removeTypingIndicator();
+                console.error('Error:', error);
+                addMessage('Помилка мережі.', 'bot');
+            }
+        }
+
+        function addMessage(text, type) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${type}`;
+            msgDiv.textContent = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'message bot';
+            indicator.id = 'typing';
+            indicator.innerHTML = '<span style="opacity:0.5">друкує...</span>';
+            chatMessages.appendChild(indicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing');
+            if (indicator) indicator.remove();
+        }
+
+        // --- SCROLL ANIMATIONS ---
+        const featureObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, idx) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => entry.target.classList.add('visible'), idx * 150);
+                }
+            });
+        }, { threshold: 0.2 });
+
+        document.querySelectorAll('.feature-card').forEach(card => featureObserver.observe(card));
+
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target.querySelector('.stat-value');
+                    const target = parseInt(el.dataset.target);
+                    animateValue(el, target);
+                    statsObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.stat-item').forEach(item => statsObserver.observe(item));
+
+        function animateValue(el, target) {
+            let current = 0;
+            const duration = 2000;
+            const startTime = performance.now();
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                current = Math.floor((1 - Math.pow(1 - progress, 4)) * target);
+                const suffix = target === 98 ? '%' : target === 3 ? 'x' : '+';
+                el.textContent = current + (progress === 1 ? suffix : '');
+                if (progress < 1) requestAnimationFrame(update);
+            }
+            requestAnimationFrame(update);
+        }
+    </script>
+</body>
+</html>
